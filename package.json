@@ -1,0 +1,30 @@
+{
+  "name": "watermarker",
+  "description": "Subtle all-over watermarking with GraphicsMagick, using the C++ API.",
+  "keywords": [
+    "graphicsmagick",
+    "watermark"
+  ],
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vishvish/node-watermarker-native.git"
+  },
+  "author": "vishvish",
+  "contributors": [ "Masakazu Ohtsuka http://maaash.jp/" ],
+  "main": "./index.js",
+  "scripts": {
+    "test": "node test/test.js",
+    "install": "node-gyp rebuild"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tap": "*",
+    "grunt": "~0.4.1",
+    "grunt-release": "~0.3.5",
+    "grunt-contrib-clean": "~0.4.1"
+  }
+}
