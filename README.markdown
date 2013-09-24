@@ -39,8 +39,19 @@ Check the `test` folder for processed images.
 
 This should be a transparent, subtle image, saved as a PNG. Open the `watermark.png` in the test folder using Photoshop, create a background layer filled with black and see how gentle the watermark is. It works very well in compositing.
 
+### Changelog
 
-## License (MIT)
+1.0.0
+
+Basic tiling of watermark image across photograph.
+
+---
+
+## Photograph Copyright
+
+Photos supplied for test purposes are Copyright (c) Vish Vishvanath and may only be used for testing this software and its derivatives, and may not be displayed, published, sold or otherwise reused without permission.
+
+## Software License (MIT)
 
 Copyright (c) Vish Vishvanath <http://www.vishvish.com/>
 
