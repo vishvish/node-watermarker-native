@@ -43,6 +43,10 @@ This should be a transparent, subtle image, saved as a PNG. Open the `watermark.
 
 Basic tiling of watermark image across photograph.
 
+1.0.1
+
+Adding auto-discovery of correct Homebrew include directory.
+
 ---
 
 ## Photograph Copyright
