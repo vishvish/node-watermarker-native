@@ -24,14 +24,12 @@ Instructions for OS X:
 
 Via Homebrew:
 
-I recommend that you set your CMAKE_PREFIX_PATH environment variable. I do not install Homebrew into `/usr/local` - I think that's a terrible idea - and running this command will set it up correctly to ensure the compiler finds the right headers:
-
-    brew --env | grep PREFIX | source /dev/stdin
-
     brew install graphicsmagick --build-from-source
     npm install
     grunt build
     npm test
+
+The `binding.gyp` run automatically finds the correct include folder with Homebrew, which is useful when you have installed Homebrew outside of its default `/usr/local` which I feel is a terrible place to install it.
 
 Check the `test` folder for processed images.
 
@@ -44,6 +42,10 @@ This should be a transparent, subtle image, saved as a PNG. Open the `watermark.
 1.0.0
 
 Basic tiling of watermark image across photograph.
+
+1.0.1
+
+Adding auto-discovery of correct Homebrew include directory.
 
 ---
 
