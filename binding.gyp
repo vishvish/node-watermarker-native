@@ -3,7 +3,7 @@
   {
     "target_name": "watermarker",
       "include_dirs": [
-        "$(CMAKE_PREFIX_PATH)/include/GraphicsMagick"
+        "<!(brew --config | grep PREFIX | sed -n -e 's/^.*: //p')/include/GraphicsMagick"
         ],
 
       "sources": [ "src/watermarker.cc" ],
