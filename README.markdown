@@ -26,12 +26,12 @@ The watermarker also provides resizing, bound to GraphicsMagick, as a separate o
 
 The resizer will maintain aspect ratio of the image, and the width/height values denotes the size of the box that the final image should fit into. The quality property is not optional, and should be above 80 for high quality images.
 
-  var resized = watermarker.resize({
-    imageData: imageData,
-    width: 300,
-    height: 300,
-    quality: 90
-  });
+    var resized = watermarker.resize({
+      imageData: imageData,
+      width: 300,
+      height: 300,
+      quality: 90
+    });
 
 ## Build
 
