@@ -62,6 +62,10 @@ Basic tiling of watermark image across photograph.
 
 Adding auto-discovery of correct Homebrew include directory.
 
+1.0.2
+
+Adding resize functionality.
+
 ---
 
 ## Photograph Copyright
