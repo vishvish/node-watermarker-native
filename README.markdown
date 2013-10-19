@@ -6,17 +6,32 @@ With assistance from Masakazu Ohtsuka's [node-imagemagick-native](https://github
 
 This is a high-performance version of the watermarker used on my photos  at [http://www.vishvish.com/](http://www.vishvish.com/). I required all-over, subtle, watermarking to reduce copyright theft by companies illegally selling prints and products using my images. Watermarking is a controversial topic amongst some photographers, but I felt that it was necessary, and a subtle covering pattern looks much better than a bold, ugly copyright notice in one corner, which can easily be cropped out.
 
-## Example
+The watermarker also provides resizing, bound to GraphicsMagick, as a separate operation.
+
+## Examples
+
+### Watermarking
 
     var watermarker = require('watermarker');
 
     var imageData = require('fs').readFileSync('./test/photo.jpg');
     var watermarkData = require('fs').readfilesync('./test/watermark.png');
 
-    var watermarked = watermarker.run({
+    var watermarked = watermarker.watermark({
       imageData: imageData,
       watermarkData: watermarkData
     });
+
+### Resizing
+
+The resizer will maintain aspect ratio of the image, and the width/height values denotes the size of the box that the final image should fit into. The quality property is not optional, and should be above 80 for high quality images.
+
+  var resized = watermarker.resize({
+    imageData: imageData,
+    width: 300,
+    height: 300,
+    quality: 90
+  });
 
 ## Build
 
