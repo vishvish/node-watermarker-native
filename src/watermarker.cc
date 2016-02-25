@@ -1,133 +1,96 @@
-#ifndef BUILDING_NODE_EXTENSION
-#define BUILDING_NODE_EXTENSION
-#endif  // BUILDING_NODE_EXTENSION
-
 #include "watermarker.h"
-#include <list>
-#include <string.h>
-#include <exception>
-#include <sstream>
-using namespace std; 
-using namespace Magick;
+#include <iostream>
 
-#define THROW_ERROR_EXCEPTION(x) ThrowException(v8::Exception::Error(String::New(x))); \
-  scope.Close(Undefined())
+namespace demo {
+  using v8::Exception;
+  using v8::FunctionCallbackInfo;
+  using v8::Isolate;
+  using v8::Local;
+  using v8::Number;
+  using v8::Object;
+  using v8::String;
+  using v8::Value;
 
-// input
-//   args[ 0 ]: options. required, object with following key,values
-//              {
-//                  imageData:        required. Buffer with binary image data
-//                  debug:          optional. 1 or 0
-//              }
-Handle<Value> Watermark(const Arguments& args) {
-  HandleScope scope;
+  void Method(const FunctionCallbackInfo<Value>& args) {
+    Magick::InitializeMagick(NULL);
 
-  Local<Object> obj = Local<Object>::Cast( args[ 0 ] );
-  Local<Object> imageData     = Local<Object>::Cast( obj->Get( String::NewSymbol("imageData") ) );
-  Local<Object> watermarkData = Local<Object>::Cast( obj->Get( String::NewSymbol("watermarkData") ) );
+    Isolate* isolate = args.GetIsolate();
 
-  if ( imageData->IsUndefined() || ! node::Buffer::HasInstance(imageData) ) {
-    return THROW_ERROR_EXCEPTION("composite()'s 1st argument should have \"imageData\" key with a Buffer instance");
-  }
+    Local<Object> obj = Local<Object>::Cast( args[ 0 ] );
 
-  int debug = obj->Get( String::NewSymbol("debug") )->Uint32Value();
-  if (debug) printf( "debug: on\n" );
+     //Wot a palaver to get a string - this can't be right :)
+    v8::Local<v8::String> imd =
+      v8::String::NewFromUtf8(isolate, "imageData", v8::String::kInternalizedString);
 
-  Magick::Blob imageBlob( node::Buffer::Data(imageData), node::Buffer::Length(imageData) );
-  Magick::Blob watermarkBlob( node::Buffer::Data(watermarkData), node::Buffer::Length(watermarkData) );
+    v8::Local<v8::String> wmd =
+      v8::String::NewFromUtf8(isolate, "watermarkData", v8::String::kInternalizedString);
 
-  Magick::Image image;
-  try {
-    image.read( imageBlob );
-  }
-  catch (std::exception& err) {
-    std::string message = "image.read failed with error: ";
-    message += err.what();
-    return THROW_ERROR_EXCEPTION(message.c_str());
-  }
-  catch (...) {
-    return THROW_ERROR_EXCEPTION("unhandled error");
-  }
+    Local<Object> imageData     = Local<Object>::Cast( obj->Get( imd ) );
+    Local<Object> watermarkData = Local<Object>::Cast( obj->Get( wmd ) );
 
-  Magick::Image watermark;
-  try {
-    watermark.read( watermarkBlob );
-  }
-  catch (std::exception& err) {
-    std::string message = "watermark.read failed with error: ";
-    message += err.what();
-    return THROW_ERROR_EXCEPTION(message.c_str());
-  }
-  catch (...) {
-    return THROW_ERROR_EXCEPTION("unhandled error");
-  }
+    Magick::Blob imageBlob( Buffer::Data(imageData), Buffer::Length(imageData) );
+    Magick::Blob watermarkBlob( node::Buffer::Data(watermarkData), node::Buffer::Length(watermarkData) );
 
-  int hTiles = (image.rows() + watermark.rows() - 1) / watermark.rows();
-  int vTiles = (image.columns() + watermark.columns() - 1) / watermark.columns();
-  int ww = watermark.rows() + 50;
-  int wh = watermark.columns() + 50;
+    Magick::Image image;
 
-  for(int i = 0; i < hTiles; i++) {
-    for(int j = 0; j < vTiles; j++) {
-      image.composite(watermark, (ww * i), (wh * j), Magick::OverCompositeOp);
+    try {
+      image.read(imageBlob);
     }
+    catch (std::exception& err) {
+      isolate->ThrowException(Exception::TypeError(
+            String::NewFromUtf8(isolate, "Image read failed with error.")));
+      return;
+    }
+    catch (...) {
+      isolate->ThrowException(Exception::TypeError(
+            String::NewFromUtf8(isolate, "Unhandled exception.")));
+      return;
+    }
+
+    Magick::Image watermark;
+
+    try {
+      watermark.read( watermarkBlob );
+    }
+    catch (std::exception& err) {
+      isolate->ThrowException(Exception::TypeError(
+            String::NewFromUtf8(isolate, "Watermark read failed with error.")));
+      return;
+    }
+    catch (...) {
+      isolate->ThrowException(Exception::TypeError(
+            String::NewFromUtf8(isolate, "Unhandled exception.")));
+      return;
+    }
+
+    int hTiles = (image.rows() + watermark.rows() - 1) / watermark.rows();
+    int vTiles = (image.columns() + watermark.columns() - 1) / watermark.columns();
+    int ww = watermark.rows() + 50;
+    int wh = watermark.columns() + 50;
+
+    for(int i = 0; i < hTiles; i++) {
+      for(int j = 0; j < vTiles; j++) {
+        image.composite(watermark, (ww * i), (wh * j), Magick::OverCompositeOp);
+      }
+    }
+
+    Magick::Blob outputBlob;
+    image.write( &outputBlob );
+    char *bChar = (char *)outputBlob.data();
+    MaybeLocal<Object> retBuffer = Nan::NewBuffer(bChar, outputBlob.length());
+    //memcpy( node::Buffer::Data( retBuffer->handle_ ), outputBlob.data(), outputBlob.length() );
+
+
+    //args.GetReturnValue().Set(outputBlob);
+
+    args.GetReturnValue().Set(retBuffer.ToLocalChecked());
+    //args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
   }
 
-  Magick::Blob outputBlob;
-  image.write( &outputBlob );
+  void init(Local<Object> exports) {
+    NODE_SET_METHOD(exports, "hello", Method);
+  }
 
-  node::Buffer* retBuffer = node::Buffer::New( outputBlob.length() );
-  memcpy( node::Buffer::Data( retBuffer->handle_ ), outputBlob.data(), outputBlob.length() );
-  return scope.Close( retBuffer->handle_ );
+  NODE_MODULE(addon, init)
 }
 
-Handle<Value> Resize(const Arguments& args) {
-  HandleScope scope;
-
-  Local<Object> obj       = Local<Object>::Cast( args[ 0 ] );
-  Local<Object> imageData = Local<Object>::Cast( obj->Get( String::NewSymbol( "imageData" ) ) );
-  unsigned int width      = obj->Get( String::New( "width" ) )->Uint32Value();
-  unsigned int height     = obj->Get( String::New( "height" ) )->Uint32Value();
-  unsigned int quality    = obj->Get( String::New( "quality" ) )->IntegerValue();
-
-  if ( imageData->IsUndefined() || ! node::Buffer::HasInstance( imageData ) ) {
-    return THROW_ERROR_EXCEPTION("composite()'s 1st argument should have \"imageData\" key with a Buffer instance");
-  }
-
-  Magick::Blob imageBlob( node::Buffer::Data( imageData ), node::Buffer::Length( imageData ) );
-  Magick::Image image;
-
-  try {
-    image.read( imageBlob );
-  }
-  catch ( std::exception& err ) {
-    std::string message = "image.read failed: ";
-    message += err.what();
-    return THROW_ERROR_EXCEPTION( message.c_str() );
-  }
-  catch( ... ) {
-    return THROW_ERROR_EXCEPTION( "error" ); 
-  }
-
-  std::ostringstream os;
-  os << width << "x" << height << ">";
-  std::string s = os.str();
-
-  Magick::Geometry resizeTo( s );
-  Magick::Blob outputBlob;
-  image.quality( quality );
-  image.scale( resizeTo );
-  image.write( &outputBlob );
-
-  node::Buffer* retBuffer = node::Buffer::New( outputBlob.length() );
-  memcpy( node::Buffer::Data( retBuffer->handle_ ), outputBlob.data(), outputBlob.length() );
-  return scope.Close( retBuffer->handle_ );
-}
-
-void init(Handle<Object> target, char **argv) {
-  InitializeMagick(*argv);
-  target->Set(String::NewSymbol("watermark"), FunctionTemplate::New(Watermark)->GetFunction());
-  target->Set(String::NewSymbol("resize"), FunctionTemplate::New(Resize)->GetFunction());
-}
-
-NODE_MODULE(watermarker, init)
