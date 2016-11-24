@@ -12,26 +12,30 @@ The watermarker also provides resizing, bound to GraphicsMagick, as a separate o
 
 ### Watermarking
 
-    var watermarker = require('watermarker');
+```js
+var watermarker = require('watermarker');
 
-    var imageData = require('fs').readFileSync('./test/photo.jpg');
-    var watermarkData = require('fs').readfilesync('./test/watermark.png');
+var imageData = require('fs').readFileSync('./test/photo.jpg');
+var watermarkData = require('fs').readfilesync('./test/watermark.png');
 
-    var watermarked = watermarker.watermark({
-      imageData: imageData,
-      watermarkData: watermarkData
-    });
+var watermarked = watermarker.watermark({
+  imageData: imageData,
+  watermarkData: watermarkData
+});
+```
 
 ### Resizing
 
 The resizer will maintain aspect ratio of the image, and the width/height values denotes the size of the box that the final image should fit into. The quality property is not optional, and should be above 80 for high quality images.
 
-    var resized = watermarker.resize({
-      imageData: imageData,
-      width: 300,
-      height: 300,
-      quality: 90
-    });
+```js
+var resized = watermarker.resize({
+  imageData: imageData,
+  width: 300,
+  height: 300,
+  quality: 90
+});
+```
 
 ## Build
 
